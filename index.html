@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PayFlow - Organizador con Notificaciones</title>
+  
+  <!-- FontAwesome (Íconos) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Chart.js (Gráficos) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg: #0e131f;
+      --card-bg: #182032;
+      --card-subtle: #212c42;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #4f46e5;
+      --primary-light: #6366f1;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --border: #2a374f;
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 1.5rem;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .brand-icon {
+      background: linear-gradient(135deg, #6366f1, #38bdf8);
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      color: white;
+    }
+
+    .brand h1 { font-size: 1.5rem; font-weight: 700; }
+    .brand p { font-size: 0.85rem; color: var(--text-muted); }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    /* Moneda */
+    .currency-switch-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.6rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .currency-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .currency-btn.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
+    }
+
+    .rate-tag {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-left: 1px solid var(--border);
+      padding-left: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    /* Campanita */
+    .btn-bell {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      font-size: 1.15rem;
+      cursor: pointer;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .btn-bell:hover {
+      background: var(--card-subtle);
+      color: #38bdf8;
+      border-color: #38bdf8;
+    }
+
+    .bell-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--danger);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 800;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+    }
+
+    .btn-add {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      border: none;
+      padding: 0.75rem 1.3rem;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+      transition: transform 0.15s ease, filter 0.2s ease;
+    }
+
+    .btn-add:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+
+    /* Buscador */
+    .search-bar {
+      display: flex;
+      align-items: center;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.6rem 1rem;
+      gap: 0.75rem;
+    }
+
+    .search-bar input {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 0.95rem;
+      width: 100%;
+      outline: none;
+    }
+
+    /* Balanza KPIs */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .kpi-info span {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .kpi-info strong {
+      display: block;
+      margin-top: 0.3rem;
+      font-size: 1.8rem;
+      font-weight: 800;
+    }
+
+    .kpi-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+    }
+
+    .icon-total { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+    .icon-pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .icon-paid { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+
+    /* Layout */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 950px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.3rem;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .counter-pill {
+      background: var(--card-subtle);
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      color: var(--text-muted);
+    }
+
+    /* Cards */
+    .services-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .service-card {
+      background: var(--card-subtle);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .service-card.priority-urgent {
+      border-left: 5px solid var(--danger);
+    }
+
+    .service-left {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+    }
+
+    .service-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+
+    .logo-smartfit { background: #ffaa00; color: #111; }
+    .logo-netflix { background: #e50914; color: white; }
+    .logo-spotify { background: #1db954; color: black; }
+    .logo-gym { background: #f97316; color: white; }
+    .logo-wifi { background: #06b6d4; color: white; }
+    .logo-light { background: #eab308; color: black; }
+    .logo-water { background: #3b82f6; color: white; }
+    .logo-house { background: #8b5cf6; color: white; }
+    .logo-card { background: #64748b; color: white; }
+    .logo-generic { background: #334155; color: #94a3b8; }
+
+    .service-info h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .service-info p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    .badge-urgent {
+      font-size: 0.65rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
+      font-weight: 700;
+    }
+    .urgent-red { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .urgent-yellow { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .urgent-blue { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+
+    .service-right {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .price-tag { text-align: right; }
+    .price-tag .val { font-size: 1.15rem; font-weight: 800; }
+    .price-tag .original-val { font-size: 0.7rem; color: var(--text-muted); }
+
+    .btn-status {
+      padding: 0.5rem 0.85rem;
+      border-radius: 9px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: 0.15s ease;
+    }
+
+    .btn-pay {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .btn-pay:hover { background: var(--success); color: white; }
+
+    .btn-unpay {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .btn-unpay:hover { background: var(--warning); color: #111; }
+
+    .icon-action-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.4rem;
+      border-radius: 6px;
+      transition: color 0.2s;
+    }
+
+    .icon-action-btn:hover { color: var(--text); }
+    .btn-delete:hover { color: var(--danger); }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .history-list {
+      max-height: 250px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .history-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0.8rem;
+      background: var(--card-subtle);
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 220px;
+      width: 100%;
+    }
+
+    /* Modales */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(5px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+      z-index: 100;
+    }
+
+    .modal-backdrop.active { display: flex; }
+
+    .modal-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 460px;
+    }
+
+    .modal-card h2 { font-size: 1.25rem; margin-bottom: 1.2rem; }
+
+    .form-group {
+      margin-bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .form-group label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .form-group input, .form-group select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem;
+      color: white;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .input-with-currency { display: flex; gap: 0.5rem; }
+    .input-with-currency input { flex: 1; }
+    .input-with-currency select { width: 110px; }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.7rem 1.2rem;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    /* Cuadro de Notificación */
+    .notif-box {
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px dashed var(--primary-light);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .switch-label {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .upcoming-preview {
+      max-height: 180px;
+      overflow-y: auto;
+      margin-top: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .upcoming-item {
+      font-size: 0.85rem;
+      padding: 0.6rem 0.8rem;
+      border-radius: 8px;
+      background: var(--card-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="brand-icon"><i class="fa-solid fa-wallet"></i></div>
+        <div>
+          <h1>PayFlow</h1>
+          <p>Organizador de Pagos con Alertas</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Selector de Moneda -->
+        <div class="currency-switch-box">
+          <button class="currency-btn" id="btnHNL" onclick="setCurrency('HNL')">🇭🇳 L (HNL)</button>
+          <button class="currency-btn" id="btnUSD" onclick="setCurrency('USD')">🇺🇸 $ (USD)</button>
+          <div class="rate-tag" onclick="editExchangeRate()" title="Modificar tasa bancaria">
+            <span id="rateLabel">1$ = L 25.50</span>
+            <i class="fa-solid fa-pen" style="font-size: 0.65rem;"></i>
+          </div>
+        </div>
+
+        <!-- Campanita de Notificaciones -->
+        <button class="btn-bell" id="openNotifBtn" title="Centro de Notificaciones">
+          <i class="fa-solid fa-bell"></i>
+          <span class="bell-badge" id="bellBadge" style="display: none;">0</span>
+        </button>
+
+        <button class="btn-add" id="openModalBtn">
+          <i class="fa-solid fa-plus"></i> Nuevo Servicio
+        </button>
+      </div>
+    </header>
+
+    <!-- Buscador -->
+    <div class="search-bar">
+      <i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted);"></i>
+      <input type="text" id="searchInput" placeholder="Buscar servicio (ej. Smart Fit, Netflix, Luz, Internet)..." oninput="render()">
+    </div>
+
+    <!-- Balanza KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-info">
+          <span>Total de Servicios</span>
+          <strong id="kpiTotal" style="color: #38bdf8;">L 0.00</strong>
+        </div>
+        <div class="kpi-icon icon-total"><i class="fa-solid fa-scale-balanced"></i></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-info">
+          <span>Pendiente de Pago</span>
+          <strong id="kpiPending" style="color: #fbbf24;">L 0.00</strong>
+        </div>
+        <div class="kpi-icon icon-pending"><i class="fa-solid fa-clock"></i></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-info">
+          <span>Ya Pagado Este Periodo</span>
+          <strong id="kpiPaid" style="color: #34d399;">L 0.00</strong>
+        </div>
+        <div class="kpi-icon icon-paid"><i class="fa-solid fa-circle-check"></i></div>
+      </div>
+    </div>
+
+    <!-- Grids -->
+    <div class="main-grid">
+      <div class="column">
+        <!-- Pendientes -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <i class="fa-solid fa-triangle-exclamation" style="color: var(--warning);"></i>
+              Pagos Pendientes
+            </div>
+            <span class="counter-pill" id="pendingBadge">0</span>
+          </div>
+          <div class="services-stack" id="pendingContainer"></div>
+          <div class="empty-state" id="emptyPending" style="display: none;">
+            <i class="fa-solid fa-champagne-glasses" style="font-size: 1.8rem; margin-bottom: 0.5rem; display: block;"></i>
+            ¡Todo al día! No tienes pagos pendientes.
+          </div>
+        </div>
+
+        <!-- Pagados -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <i class="fa-solid fa-circle-check" style="color: var(--success);"></i>
+              Servicios Pagados (Al día)
+            </div>
+            <span class="counter-pill" id="paidBadge">0</span>
+          </div>
+          <div class="services-stack" id="paidContainer"></div>
+          <div class="empty-state" id="emptyPaid" style="display: none;">
+            Aún no has marcado servicios como pagados.
+          </div>
+        </div>
+      </div>
+
+      <div class="column">
+        <!-- Gráficos -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><i class="fa-solid fa-chart-pie"></i> Estado del Mes</div>
+          </div>
+          <div class="chart-container">
+            <canvas id="balanceChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Historial -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><i class="fa-solid fa-receipt"></i> Historial Reciente</div>
+            <button class="icon-action-btn" title="Limpiar historial" onclick="clearHistory()">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+          <div class="history-list" id="historyContainer"></div>
+          <div class="empty-state" id="emptyHistory" style="display: none;">
+            Sin movimientos registrados aún.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Nuevo/Editar Servicio -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal-card">
+      <h2 id="modalTitle">Nuevo Servicio</h2>
+      <form id="serviceForm">
+        <input type="hidden" id="editServiceId">
+
+        <div class="form-group">
+          <label>Nombre del Servicio</label>
+          <input type="text" id="serviceName" placeholder="Ej. Smart Fit, Netflix, ENEE Luz, Internet" required>
+        </div>
+
+        <div class="form-group">
+          <label>Precio y Moneda de Cobro</label>
+          <div class="input-with-currency">
+            <input type="number" id="servicePrice" step="0.01" min="0" placeholder="Ej. 750 o 29.99" required>
+            <select id="serviceCurrency">
+              <option value="HNL">L (HNL)</option>
+              <option value="USD">$ (USD)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Categoría / Logo</label>
+          <select id="serviceCategory">
+            <option value="auto">Auto-detectar por nombre</option>
+            <option value="gym">Gimnasio / Deporte (Smart Fit)</option>
+            <option value="netflix">Streaming / Películas</option>
+            <option value="spotify">Música (Spotify / etc.)</option>
+            <option value="light">Electricidad (ENEE / Luz)</option>
+            <option value="water">Agua (SANAA / Aguas de SPS)</option>
+            <option value="wifi">Internet / Telefonía (Tigo, Claro)</option>
+            <option value="house">Renta / Hogar</option>
+            <option value="card">Tarjeta de Crédito / Préstamo</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Frecuencia de Cobro</label>
+          <select id="serviceFrequency" onchange="adjustFrequencyFields()">
+            <option value="mensual">Mensual</option>
+            <option value="semanal">Semanal</option>
+            <option value="anual">Anual</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="freqFieldWrapper">
+          <label id="freqFieldLabel">Día de cobro cada mes (1 - 31)</label>
+          <input type="number" id="freqFieldValue" min="1" max="31" placeholder="Ej. 15" required>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="closeModalBtn">Cancelar</button>
+          <button type="submit" class="btn-add">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Centro de Notificaciones -->
+  <div class="modal-backdrop" id="notifModalBackdrop">
+    <div class="modal-card">
+      <h2><i class="fa-solid fa-bell" style="color: #38bdf8;"></i> Centro de Notificaciones</h2>
+      
+      <div class="notif-box">
+        <label class="switch-label">
+          <input type="checkbox" id="notifEnabled" style="width: 18px; height: 18px; accent-color: var(--primary);">
+          <strong>Activar alertas en pantalla (1 semana antes / 7 días)</strong>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label>Pagos que vencen esta semana (7 días o menos):</label>
+        <div class="upcoming-preview" id="upcomingPreviewList"></div>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+        <button type="button" class="btn-secondary" style="flex: 1; justify-content: center; font-size: 0.85rem;" onclick="testDesktopNotification()">
+          <i class="fa-solid fa-bullhorn"></i> Probar alerta en pantalla
+        </button>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" id="closeNotifModalBtn">Cerrar</button>
+        <button type="button" class="btn-add" onclick="saveNotificationSettings()">Guardar Preferencia</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Moneda & Tasa
+    let currentCurrency = localStorage.getItem('payflow_currency') || 'HNL';
+    let exchangeRate = parseFloat(localStorage.getItem('payflow_rate')) || 25.50;
+
+    // Servicios
+    let services = JSON.parse(localStorage.getItem('payflow_services')) || [
+      { id: 1, name: 'Smart Fit', price: 750, currency: 'HNL', category: 'gym', frequency: 'mensual', freqValue: 15, paid: false },
+      { id: 2, name: 'Netflix', price: 15.49, currency: 'USD', category: 'netflix', frequency: 'mensual', freqValue: 5, paid: false },
+      { id: 3, name: 'Luz ENEE', price: 1200, currency: 'HNL', category: 'light', frequency: 'mensual', freqValue: 20, paid: false }
+    ];
+    let history = JSON.parse(localStorage.getItem('payflow_history')) || [];
+
+    // Ajustes de Notificaciones
+    let notifConfig = JSON.parse(localStorage.getItem('payflow_notif_config')) || {
+      enabled: true,
+      lastSentDate: ''
+    };
+
+    // Referencias DOM
+    const pendingContainer = document.getElementById('pendingContainer');
+    const paidContainer = document.getElementById('paidContainer');
+    const historyContainer = document.getElementById('historyContainer');
+    const emptyPending = document.getElementById('emptyPending');
+    const emptyPaid = document.getElementById('emptyPaid');
+    const emptyHistory = document.getElementById('emptyHistory');
+
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const openModalBtn = document.getElementById('openModalBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const serviceForm = document.getElementById('serviceForm');
+
+    // Referencias Modal Campanita
+    const notifModalBackdrop = document.getElementById('notifModalBackdrop');
+    const openNotifBtn = document.getElementById('openNotifBtn');
+    const closeNotifModalBtn = document.getElementById('closeNotifModalBtn');
+    const bellBadge = document.getElementById('bellBadge');
+    const upcomingPreviewList = document.getElementById('upcomingPreviewList');
+
+    let chartInstance = null;
+
+    // Conversión de moneda
+    function convertAmount(amount, fromCur, toCur) {
+      if (fromCur === toCur) return amount;
+      if (fromCur === 'USD' && toCur === 'HNL') return amount * exchangeRate;
+      if (fromCur === 'HNL' && toCur === 'USD') return amount / exchangeRate;
+      return amount;
+    }
+
+    function formatCurrency(amount, cur = currentCurrency) {
+      const symbol = cur === 'HNL' ? 'L' : '$';
+      return `${symbol} ${amount.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    window.setCurrency = function(cur) {
+      currentCurrency = cur;
+      localStorage.setItem('payflow_currency', cur);
+      updateCurrencyButtons();
+      render();
+    };
+
+    function updateCurrencyButtons() {
+      document.getElementById('btnHNL').classList.toggle('active', currentCurrency === 'HNL');
+      document.getElementById('btnUSD').classList.toggle('active', currentCurrency === 'USD');
+      document.getElementById('rateLabel').innerText = `1$ = L ${exchangeRate.toFixed(2)}`;
+    }
+
+    window.editExchangeRate = function() {
+      const newRate = prompt('Ingresa la tasa bancaria (1 USD a cuántos Lempiras equivale):', exchangeRate);
+      if (newRate && !isNaN(newRate) && parseFloat(newRate) > 0) {
+        exchangeRate = parseFloat(newRate);
+        localStorage.setItem('payflow_rate', exchangeRate);
+        updateCurrencyButtons();
+        render();
+      }
+    };
+
+    // Modal Servicio
+    openModalBtn.addEventListener('click', () => {
+      document.getElementById('serviceForm').reset();
+      document.getElementById('editServiceId').value = '';
+      document.getElementById('serviceCurrency').value = currentCurrency;
+      document.getElementById('modalTitle').innerText = 'Nuevo Servicio';
+      adjustFrequencyFields();
+      modalBackdrop.classList.add('active');
+    });
+    closeModalBtn.addEventListener('click', () => modalBackdrop.classList.remove('active'));
+
+    // Modal Campanita
+    openNotifBtn.addEventListener('click', () => {
+      document.getElementById('notifEnabled').checked = notifConfig.enabled;
+      renderUpcomingPreview();
+      notifModalBackdrop.classList.add('active');
+
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+    });
+    closeNotifModalBtn.addEventListener('click', () => notifModalBackdrop.classList.remove('active'));
+
+    function saveNotificationSettings() {
+      notifConfig.enabled = document.getElementById('notifEnabled').checked;
+      localStorage.setItem('payflow_notif_config', JSON.stringify(notifConfig));
+
+      if (notifConfig.enabled && "Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+
+      alert('Preferencia de alertas guardada.');
+      notifModalBackdrop.classList.remove('active');
+      checkAndSendAutomatedAlerts();
+    }
+
+    // Probar alerta en pantalla
+    window.testDesktopNotification = function() {
+      if (!("Notification" in window)) {
+        alert("Este navegador no soporta alertas de escritorio.");
+        return;
+      }
+
+      Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+          new Notification("🔔 PayFlow: Prueba de Alerta", {
+            body: "¡Las notificaciones están funcionando! Te avisaremos cuando un recibo esté a 7 días o menos de vencer.",
+            icon: "https://cdn-icons-png.flaticon.com/512/3135/3135706.png"
+          });
+        } else {
+          alert("Debes permitir las notificaciones en los permisos de tu navegador para ver alertas en pantalla.");
+        }
+      });
+    };
+
+    function adjustFrequencyFields() {
+      const freq = document.getElementById('serviceFrequency').value;
+      const wrapper = document.getElementById('freqFieldWrapper');
+
+      if (freq === 'mensual') {
+        wrapper.innerHTML = `
+          <label>Día del mes de cobro (1 - 31)</label>
+          <input type="number" id="freqFieldValue" min="1" max="31" placeholder="Ej. 15" required>
+        `;
+      } else if (freq === 'semanal') {
+        wrapper.innerHTML = `
+          <label>Día de cobro en la semana</label>
+          <select id="freqFieldValue">
+            <option value="1">Lunes</option>
+            <option value="2">Martes</option>
+            <option value="3">Miércoles</option>
+            <option value="4">Jueves</option>
+            <option value="5">Viernes</option>
+            <option value="6">Sábado</option>
+            <option value="0">Domingo</option>
+          </select>
+        `;
+      } else if (freq === 'anual') {
+        wrapper.innerHTML = `
+          <label>Próxima fecha exacta de cobro</label>
+          <input type="date" id="freqFieldValue" required>
+        `;
+      }
+    }
+
+    function getTodayKey() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function getNextDue(item) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      let nextDate = new Date();
+
+      if (item.frequency === 'mensual') {
+        const day = parseInt(item.freqValue);
+        nextDate.setDate(day);
+        if (nextDate < today) {
+          nextDate.setMonth(nextDate.getMonth() + 1);
+        }
+      } else if (item.frequency === 'semanal') {
+        const targetDay = parseInt(item.freqValue);
+        const curDay = today.getDay();
+        let diff = targetDay - curDay;
+        if (diff < 0) diff += 7;
+        nextDate.setDate(today.getDate() + diff);
+      } else if (item.frequency === 'anual') {
+        nextDate = new Date(item.freqValue + 'T00:00:00');
+        if (nextDate < today) {
+          nextDate.setFullYear(today.getFullYear() + 1);
+        }
+      }
+
+      const diffDays = Math.ceil((nextDate - today) / (1000 * 60 * 60 * 24));
+      return {
+        formattedDate: nextDate.toLocaleDateString('es-HN', { day: 'numeric', month: 'short' }),
+        diffDays
+      };
+    }
+
+    function getLogoConfig(name, category) {
+      const lower = name.toLowerCase();
+      if (category === 'gym' || lower.includes('smart') || lower.includes('gym')) {
+        return { icon: 'fa-dumbbell', class: 'logo-smartfit' };
+      }
+      if (category === 'netflix' || lower.includes('netflix') || lower.includes('disney') || lower.includes('hbo')) {
+        return { icon: 'fa-film', class: 'logo-netflix' };
+      }
+      if (category === 'spotify' || lower.includes('spotify') || lower.includes('music')) {
+        return { icon: 'fa-music', class: 'logo-spotify' };
+      }
+      if (category === 'light' || lower.includes('luz') || lower.includes('enee') || lower.includes('electricidad')) {
+        return { icon: 'fa-bolt', class: 'logo-light' };
+      }
+      if (category === 'water' || lower.includes('agua') || lower.includes('sanaa')) {
+        return { icon: 'fa-droplet', class: 'logo-water' };
+      }
+      if (category === 'wifi' || lower.includes('internet') || lower.includes('wifi') || lower.includes('claro') || lower.includes('tigo')) {
+        return { icon: 'fa-wifi', class: 'logo-wifi' };
+      }
+      if (category === 'house' || lower.includes('renta') || lower.includes('alquiler')) {
+        return { icon: 'fa-house', class: 'logo-house' };
+      }
+      if (category === 'card' || lower.includes('tarjeta') || lower.includes('bac') || lower.includes('ficohsa') || lower.includes('atlantida')) {
+        return { icon: 'fa-credit-card', class: 'logo-card' };
+      }
+      return { icon: 'fa-receipt', class: 'logo-generic' };
+    }
+
+    function sync() {
+      localStorage.setItem('payflow_services', JSON.stringify(services));
+      localStorage.setItem('payflow_history', JSON.stringify(history));
+    }
+
+    // Renderizado general
+    function render() {
+      pendingContainer.innerHTML = '';
+      paidContainer.innerHTML = '';
+      historyContainer.innerHTML = '';
+
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
+
+      let total = 0;
+      let pendingTotal = 0;
+      let paidTotal = 0;
+
+      let pendingCount = 0;
+      let paidCount = 0;
+      let urgentIn7DaysCount = 0;
+
+      const list = services.map(s => ({ ...s, ...getNextDue(s) }));
+      list.sort((a, b) => a.diffDays - b.diffDays);
+
+      list.forEach(item => {
+        const converted = convertAmount(item.price, item.currency || 'HNL', currentCurrency);
+        total += converted;
+
+        if (item.paid) {
+          paidTotal += converted;
+        } else {
+          pendingTotal += converted;
+          if (item.diffDays <= 7) {
+            urgentIn7DaysCount++;
+          }
+        }
+
+        if (query && !item.name.toLowerCase().includes(query)) return;
+
+        if (item.paid) {
+          paidCount++;
+          paidContainer.appendChild(createCard(item, converted, true));
+        } else {
+          pendingCount++;
+          pendingContainer.appendChild(createCard(item, converted, false));
+        }
+      });
+
+      // Indicador rojo de la campanita
+      if (urgentIn7DaysCount > 0) {
+        bellBadge.style.display = 'flex';
+        bellBadge.innerText = urgentIn7DaysCount;
+      } else {
+        bellBadge.style.display = 'none';
+      }
+
+      emptyPending.style.display = pendingCount === 0 ? 'block' : 'none';
+      emptyPaid.style.display = paidCount === 0 ? 'block' : 'none';
+      document.getElementById('pendingBadge').innerText = pendingCount;
+      document.getElementById('paidBadge').innerText = paidCount;
+
+      document.getElementById('kpiTotal').innerText = formatCurrency(total);
+      document.getElementById('kpiPending').innerText = formatCurrency(pendingTotal);
+      document.getElementById('kpiPaid').innerText = formatCurrency(paidTotal);
+
+      // Historial
+      if (history.length === 0) {
+        emptyHistory.style.display = 'block';
+      } else {
+        emptyHistory.style.display = 'none';
+        history.slice(-15).reverse().forEach(h => {
+          const convHistory = convertAmount(h.amount, h.currency || 'HNL', currentCurrency);
+          const row = document.createElement('div');
+          row.className = 'history-row';
+          row.innerHTML = `
+            <div>
+              <strong>${h.serviceName}</strong>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">${h.dateFormatted} • ${h.timeFormatted}</div>
+            </div>
+            <span style="color: var(--success); font-weight: 700;">+${formatCurrency(convHistory)}</span>
+          `;
+          historyContainer.appendChild(row);
+        });
+      }
+
+      updateChart(paidTotal, pendingTotal);
+    }
+
+    // Lista de servicios en la ventana de la campanita
+    function renderUpcomingPreview() {
+      upcomingPreviewList.innerHTML = '';
+      const list = services.map(s => ({ ...s, ...getNextDue(s) }))
+                           .filter(s => !s.paid && s.diffDays <= 7)
+                           .sort((a, b) => a.diffDays - b.diffDays);
+
+      if (list.length === 0) {
+        upcomingPreviewList.innerHTML = `<span style="font-size:0.85rem; color:var(--text-muted); text-align: center; display: block; padding: 1rem 0;">🎉 ¡Excelente! No tienes pagos por vencer en los próximos 7 días.</span>`;
+        return;
+      }
+
+      list.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'upcoming-item';
+        div.innerHTML = `
+          <div>
+            <strong>${item.name}</strong>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Fecha: ${item.formattedDate}</div>
+          </div>
+          <span style="color: #fbbf24; font-weight: 700;">
+            ${item.diffDays === 0 ? '¡Vence Hoy!' : 'En ' + item.diffDays + ' días'} • ${formatCurrency(convertAmount(item.price, item.currency||'HNL', currentCurrency))}
+          </span>
+        `;
+        upcomingPreviewList.appendChild(div);
+      });
+    }
+
+    // Alerta automática en pantalla
+    function checkAndSendAutomatedAlerts() {
+      if (!notifConfig.enabled) return;
+
+      const todayKey = getTodayKey();
+      const list = services.map(s => ({ ...s, ...getNextDue(s) }))
+                           .filter(s => !s.paid && s.diffDays <= 7);
+
+      if (list.length > 0 && notifConfig.lastSentDate !== todayKey) {
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification("🔔 PayFlow: Tienes pagos próximos", {
+            body: `Tienes ${list.length} servicio(s) que vencen en los próximos 7 días. Ábrelos en tu lista.`,
+            icon: "https://cdn-icons-png.flaticon.com/512/3135/3135706.png"
+          });
+        }
+        notifConfig.lastSentDate = todayKey;
+        localStorage.setItem('payflow_notif_config', JSON.stringify(notifConfig));
+      }
+    }
+
+    function createCard(item, convertedPrice, isPaid) {
+      const logo = getLogoConfig(item.name, item.category);
+      const card = document.createElement('div');
+
+      let badge = '';
+      if (!isPaid) {
+        if (item.diffDays === 0) {
+          badge = `<span class="badge-urgent urgent-red">¡Vence Hoy!</span>`;
+        } else if (item.diffDays <= 3) {
+          badge = `<span class="badge-urgent urgent-yellow">Vence en ${item.diffDays} días</span>`;
+        } else if (item.diffDays <= 7) {
+          badge = `<span class="badge-urgent urgent-blue">Esta semana (${item.formattedDate})</span>`;
+        } else {
+          badge = `<span class="badge-urgent urgent-blue">Próximo: ${item.formattedDate}</span>`;
+        }
+      }
+
+      const originalBadge = (item.currency && item.currency !== currentCurrency) 
+        ? `<div class="original-val">Orig: ${formatCurrency(item.price, item.currency)}</div>` 
+        : '';
+
+      card.className = `service-card ${!isPaid && item.diffDays <= 3 ? 'priority-urgent' : ''}`;
+      card.innerHTML = `
+        <div class="service-left">
+          <div class="service-logo ${logo.class}">
+            <i class="fa-solid ${logo.icon}"></i>
+          </div>
+          <div class="service-info">
+            <h4>${item.name} ${badge}</h4>
+            <p>Cobro ${item.frequency} • Próxima fecha: <strong>${item.formattedDate}</strong></p>
+          </div>
+        </div>
+
+        <div class="service-right">
+          <div class="price-tag">
+            <div class="val">${formatCurrency(convertedPrice)}</div>
+            ${originalBadge}
+          </div>
+
+          ${!isPaid
+            ? `<button class="btn-status btn-pay" onclick="markAsPaid(${item.id})"><i class="fa-solid fa-check"></i> Pagar</button>`
+            : `<button class="btn-status btn-unpay" onclick="markAsPending(${item.id})"><i class="fa-solid fa-rotate-left"></i> Desmarcar</button>`
+          }
+
+          <button class="icon-action-btn" title="Editar" onclick="editService(${item.id})">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button class="icon-action-btn btn-delete" title="Eliminar" onclick="deleteService(${item.id})">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+      `;
+      return card;
+    }
+
+    serviceForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const editId = document.getElementById('editServiceId').value;
+      const name = document.getElementById('serviceName').value.trim();
+      const price = parseFloat(document.getElementById('servicePrice').value);
+      const currency = document.getElementById('serviceCurrency').value;
+      const category = document.getElementById('serviceCategory').value;
+      const frequency = document.getElementById('serviceFrequency').value;
+      const freqValue = document.getElementById('freqFieldValue').value;
+
+      if (editId) {
+        const serv = services.find(s => s.id === parseInt(editId));
+        if (serv) {
+          serv.name = name;
+          serv.price = price;
+          serv.currency = currency;
+          serv.category = category;
+          serv.frequency = frequency;
+          serv.freqValue = freqValue;
+        }
+      } else {
+        services.push({
+          id: Date.now(),
+          name,
+          price,
+          currency,
+          category,
+          frequency,
+          freqValue,
+          paid: false
+        });
+      }
+
+      sync();
+      render();
+      modalBackdrop.classList.remove('active');
+    });
+
+    window.markAsPaid = function(id) {
+      const serv = services.find(s => s.id === id);
+      if (!serv) return;
+
+      serv.paid = true;
+      const todayKey = getTodayKey();
+
+      const alreadyLogged = history.some(h => h.serviceId === id && h.dateKey === todayKey);
+      if (!alreadyLogged) {
+        history.push({
+          id: Date.now(),
+          serviceId: serv.id,
+          serviceName: serv.name,
+          amount: serv.price,
+          currency: serv.currency || 'HNL',
+          frequency: serv.frequency,
+          dateKey: todayKey,
+          dateFormatted: new Date().toLocaleDateString('es-HN', { day: '2-digit', month: 'short' }),
+          timeFormatted: new Date().toLocaleTimeString('es-HN', { hour: '2-digit', minute: '2-digit' })
+        });
+      }
+
+      sync();
+      render();
+    };
+
+    window.markAsPending = function(id) {
+      const serv = services.find(s => s.id === id);
+      if (!serv) return;
+
+      serv.paid = false;
+      const todayKey = getTodayKey();
+      history = history.filter(h => !(h.serviceId === id && h.dateKey === todayKey));
+
+      sync();
+      render();
+    };
+
+    window.editService = function(id) {
+      const serv = services.find(s => s.id === id);
+      if (!serv) return;
+
+      document.getElementById('editServiceId').value = serv.id;
+      document.getElementById('serviceName').value = serv.name;
+      document.getElementById('servicePrice').value = serv.price;
+      document.getElementById('serviceCurrency').value = serv.currency || 'HNL';
+      document.getElementById('serviceCategory').value = serv.category || 'auto';
+      document.getElementById('serviceFrequency').value = serv.frequency;
+      adjustFrequencyFields();
+      document.getElementById('freqFieldValue').value = serv.freqValue;
+
+      document.getElementById('modalTitle').innerText = 'Editar Servicio';
+      modalBackdrop.classList.add('active');
+    };
+
+    window.deleteService = function(id) {
+      if (confirm('¿Deseas eliminar este servicio de tu lista?')) {
+        services = services.filter(s => s.id !== id);
+        sync();
+        render();
+      }
+    };
+
+    window.clearHistory = function() {
+      if (confirm('¿Vaciar todo el historial de pagos?')) {
+        history = [];
+        sync();
+        render();
+      }
+    };
+
+    function updateChart(paid, pending) {
+      const ctx = document.getElementById('balanceChart').getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Pagado', 'Pendiente'],
+          datasets: [{
+            data: [paid, pending],
+            backgroundColor: ['#10b981', '#f59e0b'],
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: '#94a3b8', font: { size: 12 } }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return ` ${context.label}: ${formatCurrency(context.raw)}`;
+                }
+              }
+            }
+          },
+          cutout: '72%'
+        }
+      });
+    }
+
+    // Inicializar
+    updateCurrencyButtons();
+    render();
+    checkAndSendAutomatedAlerts();
+  </script>
+</body>
+</html>
